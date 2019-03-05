@@ -1,14 +1,14 @@
 # select binary installation directory
-BIN_DIR := /usr/local/bin
+BIN_DIR := /home/e609/e609/nbombace/bin
 
 # select library installation directory
-LIB_DIR := /usr/local/lib
+LIB_DIR := /home/e609/e609/nbombace/lib
 
 # select header installation directory
-INC_DIR := /usr/local/include
+INC_DIR := /home/e609/e609/nbombace/include
 
 # select documentation installation directory
-DOC_DIR := /usr/local/share/doc/reproBLAS2
+DOC_DIR := /home/e609/e609/nbombace/share/doc/reproBLAS2
 
 # select compiler (comment all for auto)
 CC = cc
@@ -28,7 +28,9 @@ CPPFLAGS +=
 LDFLAGS +=
 
 # select whether or not to build mpi (if BUILD_MPI is not defined or set to value other that "true" MPI will not be used and corresponding parts of ReproBLAS won't build)
-BUILD_MPI = false
+BUILD_MPI = true
+
+MPICC = cc
 
 # select MPI compiler flags (comment all for auto)
 #MPICFLAGS = $(shell mpicc --showme:compile)

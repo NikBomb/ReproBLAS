@@ -1,7 +1,6 @@
-CC = gcc
-LDC = gcc
+include ../config.mk
 
-#MPICC = mpicc
+LDC = $(CC) 
 MPILDC = $(MPICC)
 
 #OMP_FLAG = -fopenmp
@@ -10,8 +9,8 @@ examples = sum_sine
 omp_examples = 
 mpi_examples = 
 
-CFLAGS += -O3
-LDFLAGS += -lm
+CFLAGS += -I $(INC_DIR)
+LDFLAGS += -L $(LIB_DIR)
 
 ifneq ($(OMP_FLAG),)
 	omp_examples += 
@@ -40,7 +39,7 @@ $(omp_examples): % : %.o
 
 $(mpi_examples): % : %.o
 	$(MPICC) $(CFLAGS) $(INCR) -c $(patsubst %,%.c,$@)
-	$(MPILDC) -o $@ $(patsubst %,%.o,$@) $(LDFLAGS) -lbinned -lbinnedblas -lreproblas -lbinnedMPI
+	$(MPILDC) -o $@ $(patsubst %,%.o,$@) $(LDFLAGS) -lbinned -lbinnedblas -lreproblas -lbinnedmpi
 
 clean:
 	rm -rf *.o
