@@ -6,6 +6,7 @@ MPILDC = $(MPICC)
 #OMP_FLAG = -fopenmp
 
 examples = sum_sine
+examples += sum_sine_bins 
 omp_examples = 
 mpi_examples = 
 
@@ -32,7 +33,7 @@ TARGET = $(patsubst %,%.o,$(examples))
 
 $(examples): % : %.o
 	$(LDC) -o $@ $(patsubst %,%.o,$@) $(LDFLAGS) -lbinned -lbinnedblas -lreproblas
-
+   
 $(omp_examples): % : %.o
 	$(CC) $(CFLAGS) $(OMP_FLAG) -c $(patsubst %,%.c,$@)
 	$(LDC) $(OMP_FLAG) -o run-$@ $(patsubst %,%.o,$@) $(LDFLAGS) -lbinned -lbinnedblas -lreproblas
@@ -43,4 +44,4 @@ $(mpi_examples): % : %.o
 
 clean:
 	rm -rf *.o
-	rm -rf $(examples) $(omp_examples) $(mpi_examples)
+	rm -rf $(examples) $(omp_examples) $(mpi_examples) 
