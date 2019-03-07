@@ -108,6 +108,20 @@ int main(int argc, char** argv){
   
   printf("%15s : %-8g : |%.17e - %.17e| = %g\n", "double", elapsed_time, sum_bins, sum_more_bins, fabs(sum_bins - sum_more_bins));
   
+  
+  // Sum using ReproBlas
+  
+  tic();
+  sum_bins = reproBLAS_dsum(n_bins, partial_bins, 1);
+  elapsed_time = toc();
+
+  tic();
+  sum_more_bins = reproBLAS_dsum(n_more_bins, partial_more_bins, 1);
+  elapsed_time = toc();
+
+  printf("%15s : %-8g : |%.17e - %.17e| = %g\n", "Reproblas sum", elapsed_time, sum_bins, sum_more_bins, fabs(sum_bins - sum_more_bins));
+
+   
   free(x);
   free(partial_bins);
   free(partial_more_bins);
