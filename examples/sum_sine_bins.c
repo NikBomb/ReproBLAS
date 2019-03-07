@@ -120,10 +120,17 @@ int main(int argc, char** argv){
   elapsed_time = toc();
 
   printf("%15s : %-8g : |%.17e - %.17e| = %g\n", "Reproblas sum", elapsed_time, sum_bins, sum_more_bins, fabs(sum_bins - sum_more_bins));
-
-   
+  
+  
+  double_binned **isum = malloc(n_more_bins * sizeof(binned_dballoc(3)));
+  binned_dbdconv(3, x[0], isum[0]);
+  
   free(x);
   free(partial_bins);
   free(partial_more_bins);
+ 
+ 
+ //Sum using Reproblas Primitives
+ 
   
 }
