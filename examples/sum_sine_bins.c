@@ -48,12 +48,48 @@ void doubledouble_plus_double(double* a, double b){
   a[1] = t2 - (a[0] - t1);
 }
 
+double partitioned_reproblas_sum(double* toSum, int toSumSize, int partitions){
+  
+   int partitionSize = toSumSize/partitions;
+
+   double_binned **repro_sum_bins = (double_binned**)malloc(partitions * binned_dbsize(3));
+   double_binned *tmp_sum = (double_binned*)malloc(binned_dbsize(3));
+   double_binned *repro_sum = (double_binned*)malloc(binned_dbsize(3));
+
+   
+   for (int i = 0; i < partitions; i++){
+     repro_sum_bins[i] = (double_binned*)malloc(binned_dbsize(3)); 
+   }
+  
+  for(int i = 0; i < partitions; i++){
+      binned_dbsetzero(3, repro_sum_bins[i]);
+      for (int j = i * partitionSize; j < (i + 1) * partitionSize; j++){
+         binned_dbdconv(3, toSum[j], tmp_sum);
+         binned_dbdbadd(3, tmp_sum, repro_sum_bins[i]);
+      }
+  }
+  
+  for(int i = 0; i < partitions; i++){
+   binned_dbdbadd(3, repro_sum_bins[i], repro_sum);
+  }  
+  
+   for (int i = 0; i < partitions; i++){
+       free(repro_sum_bins[i]); 
+   }
+   double sum  =  binned_ddbconv(3, repro_sum);
+   free(repro_sum_bins);
+   free(tmp_sum);
+   free(repro_sum);
+   return sum;
+  
+}
+
 int main(int argc, char** argv){
   
   int n = 1000000;
   double *x = malloc(n * sizeof(double));
-  int n_bins = 100;
-  int n_more_bins = n;
+  int n_bins = 200;
+  int n_more_bins = 100;
   int bin_size;
   int more_bin_size;
   
@@ -119,18 +155,16 @@ int main(int argc, char** argv){
   sum_more_bins = reproBLAS_dsum(n_more_bins, partial_more_bins, 1);
   elapsed_time = toc();
 
-  printf("%15s : %-8g : |%.17e - %.17e| = %g\n", "Reproblas sum", elapsed_time, sum_bins, sum_more_bins, fabs(sum_bins - sum_more_bins));
+  //printf("%15s : %-8g : |%.17e - %.17e| = %g\n", "Reproblas sum", elapsed_time, sum_bins, sum_more_bins, fabs(sum_bins - sum_more_bins));
   
-  
-  double_binned **isum = malloc(n_more_bins * sizeof(binned_dballoc(3)));
-  binned_dbdconv(3, x[0], isum[0]);
+ // Summing Use ReproBlas Primitives 
+ 
+ // Make a header
+   //printf("Sum: %.17e \n" , partitioned_reproblas_sum(x, n, 1));
+  printf("%15s : |Sum with a partition - Sum with different partition| = ?\n", " # partitions");
+  double diffSum = partitioned_reproblas_sum(x, n, n_bins) - partitioned_reproblas_sum(x, n, n_more_bins);
+  printf("%7i/%8i: |%.17e - %.17e| = %g\n", n_bins, n_more_bins, partitioned_reproblas_sum(x, n , n_bins), partitioned_reproblas_sum(x, n, n_more_bins), diffSum);
   
   free(x);
-  free(partial_bins);
-  free(partial_more_bins);
- 
- 
- //Sum using Reproblas Primitives
- 
   
 }
