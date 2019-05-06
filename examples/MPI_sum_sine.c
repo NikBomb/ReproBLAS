@@ -32,9 +32,9 @@ int main(int argc, char** argv){
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  int n = 10000000;
+  int n = 24000000;
   // Let's make n a multiple of size, for simplicity
-  n = n + size - (n % size); 
+  //n = n + size - (n % size); 
   int local_n = n / size;
 
   double *x = NULL;
