@@ -5,12 +5,72 @@
 #include <binned.h>
 #include <binnedBLAS.h>
 #include <reproBLAS.h>
-#include <binnedMPI.h>
+//#include <binnedMPI.h>
+#include <binned.h>
 #include <mpi.h>
+
 
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
 #endif
+
+static void binnedMPI_dbdbadd_3(void *invec, void *inoutvec, int *len, MPI_Datatype* datatype){
+  binned_dbdbaddv(3, *len, (double_binned*)invec, 1, (double_binned*)inoutvec, 1);
+}
+
+MPI_Op binnedMPI_DBDBADD() {
+    printf("Defining new Operation\n");
+    MPI_Op myOp;
+    int rc;
+    rc = MPI_Op_create(&binnedMPI_dbdbadd_3, 1, &myOp);
+    if(rc != MPI_SUCCESS){
+      if (rc == MPI_ERR_TYPE) {
+        fprintf(stderr, "[%s.%d] ReproBLAS error: MPI_Type_Op_Create error: MPI_ERR_TYPE\n", __FILE__, __LINE__);
+      } else if (rc == MPI_ERR_COUNT) {
+        fprintf(stderr, "[%s.%d] ReproBLAS error: MPI_Type_Op_Create error: MPI_ERR_COUNT\n", __FILE__, __LINE__);
+      } else if (rc == MPI_ERR_INTERN) {
+        fprintf(stderr, "[%s.%d] ReproBLAS error: MPI_Type_Op_Create error: MPI_ERR_INTERN\n", __FILE__, __LINE__);
+      } else {
+        fprintf(stderr, "[%s.%d] ReproBLAS error: MPI_Type_Op_Create error: %d\n", __FILE__, __LINE__, rc);
+      }
+      MPI_Abort(MPI_COMM_WORLD, rc);
+      return 0;
+    }
+    return myOp;
+}
+
+MPI_Datatype binnedMPI_DOUBLE_BINNED_mine(const int fold){
+  int rc;
+  
+  MPI_Datatype myBinned;
+  
+  printf("Defining new type\n");
+      rc = MPI_Type_contiguous(binned_dbnum(fold), MPI_DOUBLE, &myBinned);
+    if(rc != MPI_SUCCESS){
+      if (rc == MPI_ERR_TYPE) {
+        fprintf(stderr, "[%s.%d] ReproBLAS error: MPI_Type_contiguous error: MPI_ERR_TYPE\n", __FILE__, __LINE__);
+      } else if (rc == MPI_ERR_COUNT) {
+        fprintf(stderr, "[%s.%d] ReproBLAS error: MPI_Type_contiguous error: MPI_ERR_COUNT\n", __FILE__, __LINE__);
+      } else if (rc == MPI_ERR_INTERN) {
+        fprintf(stderr, "[%s.%d] ReproBLAS error: MPI_Type_contiguous error: MPI_ERR_INTERN\n", __FILE__, __LINE__);
+      } else {
+        fprintf(stderr, "[%s.%d] ReproBLAS error: MPI_Type_contiguous error: %d\n", __FILE__, __LINE__, rc);
+      }
+      MPI_Abort(MPI_COMM_WORLD, rc);
+      return 0;
+    }
+    rc = MPI_Type_commit(&myBinned);
+    if(rc != MPI_SUCCESS){
+      if (rc == MPI_ERR_TYPE) {
+        fprintf(stderr, "[%s.%d] ReproBLAS error: MPI_Type_commit error: MPI_ERR_TYPE\n", __FILE__, __LINE__);
+      } else {
+        fprintf(stderr, "[%s.%d] ReproBLAS error: MPI_Type_commit error: %d\n", __FILE__, __LINE__, rc);
+      }
+      MPI_Abort(MPI_COMM_WORLD, rc);
+      return 0;
+    }
+  return myBinned;
+}
 
 static struct timeval start;
 static struct timeval end;
@@ -117,11 +177,12 @@ int main(int argc, char** argv){
   // Performing local summation
   binnedBLAS_dbdsum(3, local_n, local_x, 1, local_isum);
   // Reduce
-  MPI_Reduce(local_isum, isum, 1, binnedMPI_DOUBLE_BINNED(3), binnedMPI_DBDBADD(3), 0, MPI_COMM_WORLD);
+  MPI_Reduce(local_isum, isum, 1, binnedMPI_DOUBLE_BINNED_mine(3), binnedMPI_DBDBADD(), 0, MPI_COMM_WORLD);
   if(rank == 0){
-    sum = binned_ddbconv(3, isum);
+     sum = binned_ddbconv(3, isum);
   }
   elapsed_time = toc();
+  
 
   // Next, we sum the shuffled x
   binned_dbsetzero(3, local_isum);
@@ -129,7 +190,7 @@ int main(int argc, char** argv){
     binned_dbsetzero(3, isum);
   }
   binnedBLAS_dbdsum(3, local_n, local_x_shuffled, 1, local_isum);
-  MPI_Reduce(local_isum, isum, 1, binnedMPI_DOUBLE_BINNED(3), binnedMPI_DBDBADD(3), 0, MPI_COMM_WORLD);
+  MPI_Reduce(local_isum, isum, 1,  binnedMPI_DOUBLE_BINNED_mine(3), binnedMPI_DBDBADD(), 0, MPI_COMM_WORLD);
   if(rank == 0){
     sum_shuffled = binned_ddbconv(3, isum);
   }
